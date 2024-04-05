@@ -7,7 +7,7 @@ if (isset($_COOKIE['user_id'])) {
     $user_id = $_COOKIE['user_id'];
     // You may want to verify the user_id in your database before logging them in
     // $_SESSION['user_id'] = $user_id; // Set a session variable to keep the user logged in
-    header("Location: index.php");
+    header("Location: /");
     exit;
 } else{
     if (isset($_POST["Login"])) {
@@ -33,7 +33,7 @@ if (isset($_COOKIE['user_id'])) {
                 if($remember) {
                     setcookie('user_id', $user_id, time() + (3 * 24 * 60 * 60), '/');
                 }
-                header("Location: index.php");
+                header("Location: /");
                 exit;
             } else {
                 // Invalid password
