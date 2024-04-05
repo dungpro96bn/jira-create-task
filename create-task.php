@@ -23,12 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     {
         $doc = new DOMDocument();
         $doc->loadHTML('<?xml encoding="UTF-8">' . $htmlContent);
-        $content = [];
 
-        $imageUrls = [];
-        foreach ($doc->getElementsByTagName('img') as $image) {
-            $imageUrls[] = $image->getAttribute('src');
-        }
+        $content = [];
 
         foreach ($doc->getElementsByTagName('p') as $node) {
             $paragraph = [
@@ -57,28 +53,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'type' => 'doc',
             'version' => 1,
             'content' => $content,
-            'imageUrls' => $imageUrls,
         ];
     }
 
-    $imagePath = 'https://tour-tagger-travel.vccdev.vn/wp-content/uploads/hotel_pic01_pc.png';
-    $imageData = base64_encode(file_get_contents($imagePath));
-    $imageMimeType = 'image/jpeg';
-// Chèn ảnh vào trường description
-    $jiraDescription['content'][0]['content'][] = [
-        'type' => 'media',
-        'attrs' => [
-            'id' => 'unique_media_id',
-            'type' => 'file',
-            'collection' => 'attachment',
-            'width' => 100, // Thay đổi kích thước ảnh nếu cần
-            'height' => 100,
-            'url' => 'data:' . $imageMimeType . ';base64,' . $imageData,
-        ],
-    ];
-
-    $htmlContent = $description;
-    $jiraDescription = convertToJiraFormat($htmlContent);
+    $jiraDescription = convertToJiraFormat($description);
 
 //    var_dump($jiraDescription);
 

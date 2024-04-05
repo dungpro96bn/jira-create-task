@@ -84,7 +84,7 @@ $users = json_decode($responseUser->getBody(), true);
             <div id="createTask">
                 <h2 class="heading-main">Create Tasks On Jira</h2>
                 <div class="form-createTask">
-                    <form id="formCreateTask" method="post" action="create-task.php">
+                    <form id="formCreateTask">
                         <div class="createTask-list">
                             <div class="field-group">
                                 <label class="title">Title<span>*</span></label>
@@ -163,35 +163,35 @@ $users = json_decode($responseUser->getBody(), true);
                 </div>
 
 
-<!--                <script>-->
-<!--                    $(document).ready(function() {-->
-<!--                        $('#formCreateTask').submit(function(event) {-->
-<!--                            event.preventDefault();-->
-<!--                            $(".form-createTask .submit-form svg").css("opacity", "1");-->
-<!---->
-<!--                            var formData = $(this).serialize();-->
-<!--                            $.ajax({-->
-<!--                                type: 'POST',-->
-<!--                                url: 'create-task.php',-->
-<!--                                data: formData,-->
-<!--                                success: function(response) {-->
-<!--                                    $(".form-createTask .submit-form svg").css("opacity", "0");-->
-<!--                                    $('#response').html(response);-->
-<!--                                    $(".swal-overlay").addClass("swal-overlay--show-modal");-->
-<!--                                    $('#formCreateTask')[0].reset();-->
-<!--                                    // setTimeout(() => {-->
-<!--                                    //     $(".swal-overlay").removeClass("swal-overlay--show-modal");-->
-<!--                                    // }, 5000);-->
-<!--                                }-->
-<!--                            });-->
-<!--                        });-->
-<!--                    });-->
-<!---->
-<!--                    $(".swal-overlay .swal-mask,.swal-modal .boxClose").click(function () {-->
-<!--                        $(".swal-overlay").removeClass("swal-overlay--show-modal");-->
-<!--                    });-->
-<!---->
-<!--                </script>-->
+                <script>
+                    $(document).ready(function() {
+                        $('#formCreateTask').submit(function(event) {
+                            event.preventDefault();
+                            $(".form-createTask .submit-form svg").css("opacity", "1");
+
+                            var formData = $(this).serialize();
+                            $.ajax({
+                                type: 'POST',
+                                url: 'create-task.php',
+                                data: formData,
+                                success: function(response) {
+                                    $(".form-createTask .submit-form svg").css("opacity", "0");
+                                    $('#response').html(response);
+                                    $(".swal-overlay").addClass("swal-overlay--show-modal");
+                                    $('#formCreateTask')[0].reset();
+                                    // setTimeout(() => {
+                                    //     $(".swal-overlay").removeClass("swal-overlay--show-modal");
+                                    // }, 5000);
+                                }
+                            });
+                        });
+                    });
+
+                    $(".swal-overlay .swal-mask,.swal-modal .boxClose").click(function () {
+                        $(".swal-overlay").removeClass("swal-overlay--show-modal");
+                    });
+
+                </script>
 
                 <script>
                     tinymce.init({
