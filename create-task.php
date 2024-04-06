@@ -15,52 +15,11 @@ $client = new Client([
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $summary = $_POST['summary'];
-    $description = $_POST['description'];
+    $arrayDescription = $_POST['description'];
     $assignee = $_POST['assignee'];
     $duedate = $_POST['duedate'];
 
-    function convertToJiraFormat($htmlContent)
-    {
-        $doc = new DOMDocument();
-        $doc->loadHTML('<?xml encoding="UTF-8">' . $htmlContent);
-
-        $content = [];
-
-        foreach ($doc->getElementsByTagName('p') as $node) {
-            $paragraph = [
-                'type' => 'paragraph',
-                'content' => [],
-            ];
-
-            foreach ($node->childNodes as $childNode) {
-                if ($childNode->nodeName === '#text') {
-                    $paragraph['content'][] = [
-                        'type' => 'text',
-                        'text' => $childNode->textContent,
-                    ];
-                } else if ($childNode->nodeName === 'br') {
-                    $paragraph['content'][] = [
-                        'type' => 'text',
-                        'text' => '\n',
-                    ];
-                }
-            }
-
-            $content[] = $paragraph;
-        }
-
-        return [
-            'type' => 'doc',
-            'version' => 1,
-            'content' => $content,
-        ];
-    }
-
-    $jiraDescription = convertToJiraFormat($description);
-
-//    var_dump($jiraDescription);
-
-//    die();
+    $description = json_decode($arrayDescription, true);
 
     try {
         $issueData = [
@@ -69,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'key' => $projectKey,
                 ],
                 'summary' => $summary,
-                'description' => $jiraDescription,
+                'description' => $description,
                 'issuetype' => [
                     'name' => 'Task',
                 ],

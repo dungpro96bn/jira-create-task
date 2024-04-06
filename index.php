@@ -69,7 +69,115 @@ $users = json_decode($responseUser->getBody(), true);
     <script src="/tinymce/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="/assets/js/pro.js" crossorigin="anonymous"></script>
     <script src="./assets/js/main.js?ver=<?php echo rand(); ?>"></script>
-    <script src="/tinymce/custom.js?ver=<?php echo rand(); ?>"></script>
+
+    <script defer type="module">
+        import init, {convert} from "https://unpkg.com/htmltoadf@0.1.10/htmltoadf.js";
+
+        let editor;
+
+        const INITIAL_CONTENT = ``;
+        const inputRaw = document.querySelector('.input-raw');
+        const inputRich = document.querySelector('.input-rich');
+        const adfOutput = document.querySelector('#description');
+        // const btnToggle = document.querySelector('.btn-toggle');
+
+
+        const jsonFormatter = {
+            replacer: function(match, pIndent, pKey, pVal, pEnd) {
+                var key = '';
+                var val = '';
+                var str = '';
+                var r = pIndent || '';
+                if (pKey)
+                    r = r + '"'+key + pKey.replace(/[": ]/g, '') + '": ';
+                if (pVal)
+                    r = r + (pVal[0] == '"' ? str : val) + pVal + '';
+                return r + (pEnd || '');
+            },
+            prettyPrint: function(obj) {
+                var jsonLine = /^( *)("[\w]+": )?("[^"]*"|[\w.+-]*)?([,[{])?$/mg;
+                return JSON.stringify(obj, null, 3)
+                    .replace(/&/g, '&amp;').replace(/\\"/g, '&quot;')
+                    .replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    .replace(jsonLine, jsonFormatter.replacer);
+            }
+        };
+
+        tinymce.init({
+            selector:'.input-rich',
+            plugins: 'advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount',
+            toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | help',
+            image_title: true,
+            automatic_uploads: true,
+            images_upload_url: 'postAcceptor.php',
+            file_picker_types: 'image',
+            setup: function(ed) {
+                editor = ed;
+                editor.on('keyup', () => {
+                    inputRaw.value = editor.getContent()
+                    output(editor.getContent())
+                })
+                editor.on('change', () => {
+                    inputRaw.value = editor.getContent()
+                    output(editor.getContent())
+                })
+                editor.on('init', () => {
+                    editor.setContent(INITIAL_CONTENT)
+                })
+            },
+            file_picker_callback: function(cb, value, meta) {
+                var input = document.createElement('input');
+                input.setAttribute('type', 'file');
+                input.setAttribute('accept', 'image/*');
+
+                input.onchange = function() {
+                    var file = this.files[0];
+
+                    var reader = new FileReader();
+                    reader.onload = function () {
+                        var id = 'blobid' + (new Date()).getTime();
+                        var blobCache =  tinymce.activeEditor.editorUpload.blobCache;
+                        var base64 = reader.result.split(',')[1];
+                        var blobInfo = blobCache.create(id, file, base64);
+                        blobCache.add(blobInfo);
+
+                        cb(blobInfo.blobUri(), { title: file.name });
+                    };
+                    reader.readAsDataURL(file);
+                };
+
+                input.click();
+            }
+        })
+
+        inputRaw.addEventListener('keyup', event => {
+            editor.setContent(event.target.value)
+            output(event.target.value)
+        })
+
+        // btnToggle.addEventListener('click', () => {
+        //     if(inputRaw.classList.contains('hidden')){
+        //         inputRich.classList.add('hidden')
+        //         inputRaw.classList.remove('hidden')
+        //         btnToggle.innerText = "Show Rich"
+        //     }else{
+        //         inputRaw.classList.add('hidden')
+        //         inputRich.classList.remove('hidden')
+        //         btnToggle.innerText = "Show Raw"
+        //     }
+        // });
+
+        function output(html){
+            adfOutput.innerHTML = jsonFormatter.prettyPrint(JSON.parse(convert(html)));
+            console.log(jsonFormatter);
+        }
+
+        init().then(() => {
+            inputRaw.value = INITIAL_CONTENT
+            output(INITIAL_CONTENT)
+        })
+    </script>
+
 </head>
 <body>
 
@@ -84,7 +192,7 @@ $users = json_decode($responseUser->getBody(), true);
             <div id="createTask">
                 <h2 class="heading-main">Create Tasks On Jira</h2>
                 <div class="form-createTask">
-                    <form id="formCreateTask">
+                    <form id="formCreateTask" method="post" action="create-task-demo.php">
                         <div class="createTask-list">
                             <div class="field-group">
                                 <label class="title">Title<span>*</span></label>
@@ -95,7 +203,9 @@ $users = json_decode($responseUser->getBody(), true);
                             <div class="field-group">
                                 <label class="title">Description</label>
                                 <div class="field-input">
-                                    <textarea name="description" id="description"></textarea>
+                                    <div class="input-rich"></div>
+                                    <textarea class="input-raw hidden"></textarea>
+                                    <textarea class="hidden" name="description" id="description"></textarea>
                                 </div>
                             </div>
                             <div class="field-group">
@@ -129,7 +239,6 @@ $users = json_decode($responseUser->getBody(), true);
                                     <input type="hidden" id="assignee" name="assignee" value="">
                                 </div>
                             </div>
-                            <div id="editor"></div>
                             <div class="field-group">
                                 <label class="title">Due date</label>
                                 <div class="field-input">
@@ -163,70 +272,70 @@ $users = json_decode($responseUser->getBody(), true);
                 </div>
 
 
-                <script>
-                    $(document).ready(function() {
-                        $('#formCreateTask').submit(function(event) {
-                            event.preventDefault();
-                            $(".form-createTask .submit-form svg").css("opacity", "1");
+<!--                <script>-->
+<!--                    $(document).ready(function() {-->
+<!--                        $('#formCreateTask').submit(function(event) {-->
+<!--                            event.preventDefault();-->
+<!--                            $(".form-createTask .submit-form svg").css("opacity", "1");-->
+<!---->
+<!--                            var formData = $(this).serialize();-->
+<!--                            $.ajax({-->
+<!--                                type: 'POST',-->
+<!--                                url: 'create-task.php',-->
+<!--                                data: formData,-->
+<!--                                success: function(response) {-->
+<!--                                    $(".form-createTask .submit-form svg").css("opacity", "0");-->
+<!--                                    $('#response').html(response);-->
+<!--                                    $(".swal-overlay").addClass("swal-overlay--show-modal");-->
+<!--                                    $('#formCreateTask')[0].reset();-->
+<!--                                    // setTimeout(() => {-->
+<!--                                    //     $(".swal-overlay").removeClass("swal-overlay--show-modal");-->
+<!--                                    // }, 5000);-->
+<!--                                }-->
+<!--                            });-->
+<!--                        });-->
+<!--                    });-->
+<!---->
+<!--                    $(".swal-overlay .swal-mask,.swal-modal .boxClose").click(function () {-->
+<!--                        $(".swal-overlay").removeClass("swal-overlay--show-modal");-->
+<!--                    });-->
+<!---->
+<!--                </script>-->
 
-                            var formData = $(this).serialize();
-                            $.ajax({
-                                type: 'POST',
-                                url: 'create-task.php',
-                                data: formData,
-                                success: function(response) {
-                                    $(".form-createTask .submit-form svg").css("opacity", "0");
-                                    $('#response').html(response);
-                                    $(".swal-overlay").addClass("swal-overlay--show-modal");
-                                    $('#formCreateTask')[0].reset();
-                                    // setTimeout(() => {
-                                    //     $(".swal-overlay").removeClass("swal-overlay--show-modal");
-                                    // }, 5000);
-                                }
-                            });
-                        });
-                    });
-
-                    $(".swal-overlay .swal-mask,.swal-modal .boxClose").click(function () {
-                        $(".swal-overlay").removeClass("swal-overlay--show-modal");
-                    });
-
-                </script>
-
-                <script>
-                    tinymce.init({
-                        selector: 'textarea',
-                        plugins: 'advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount',
-                        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | help',
-                        image_title: true,
-                        automatic_uploads: true,
-                        images_upload_url: 'postAcceptor.php',
-                        file_picker_types: 'image',
-                        file_picker_callback: function(cb, value, meta) {
-                            var input = document.createElement('input');
-                            input.setAttribute('type', 'file');
-                            input.setAttribute('accept', 'image/*');
-
-                            input.onchange = function() {
-                                var file = this.files[0];
-
-                                var reader = new FileReader();
-                                reader.onload = function () {
-                                    var id = 'blobid' + (new Date()).getTime();
-                                    var blobCache =  tinymce.activeEditor.editorUpload.blobCache;
-                                    var base64 = reader.result.split(',')[1];
-                                    var blobInfo = blobCache.create(id, file, base64);
-                                    blobCache.add(blobInfo);
-
-                                    cb(blobInfo.blobUri(), { title: file.name });
-                                };
-                                reader.readAsDataURL(file);
-                            };
-
-                            input.click();
-                        }
-                    });
-                </script>
+<!--                <script>-->
+<!--                    tinymce.init({-->
+<!--                        selector: 'textarea',-->
+<!--                        plugins: 'advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount',-->
+<!--                        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | help',-->
+<!--                        image_title: true,-->
+<!--                        automatic_uploads: true,-->
+<!--                        images_upload_url: 'postAcceptor.php',-->
+<!--                        file_picker_types: 'image',-->
+<!--                        file_picker_callback: function(cb, value, meta) {-->
+<!--                            var input = document.createElement('input');-->
+<!--                            input.setAttribute('type', 'file');-->
+<!--                            input.setAttribute('accept', 'image/*');-->
+<!---->
+<!--                            input.onchange = function() {-->
+<!--                                var file = this.files[0];-->
+<!---->
+<!--                                var reader = new FileReader();-->
+<!--                                reader.onload = function () {-->
+<!--                                    var id = 'blobid' + (new Date()).getTime();-->
+<!--                                    var blobCache =  tinymce.activeEditor.editorUpload.blobCache;-->
+<!--                                    var base64 = reader.result.split(',')[1];-->
+<!--                                    var blobInfo = blobCache.create(id, file, base64);-->
+<!--                                    blobCache.add(blobInfo);-->
+<!---->
+<!--                                    cb(blobInfo.blobUri(), { title: file.name });-->
+<!--                                };-->
+<!--                                reader.readAsDataURL(file);-->
+<!--                            };-->
+<!---->
+<!--                            input.click();-->
+<!--                        }-->
+<!--                    });-->
+<!--                </script>-->
 
 
             </div>

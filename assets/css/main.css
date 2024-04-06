@@ -510,6 +510,13 @@ main:after{
     margin: 0 10px 0 0;
 }
 
+.hidden{
+    display: none;
+}
+.input-rich{
+    min-height: 400px;
+}
+
 
 @media (max-width: 767px) {
 
