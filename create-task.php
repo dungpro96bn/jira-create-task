@@ -11,11 +11,20 @@ $client = new Client([
     ],
 ]);
 
+$originUrl = 'http';
+if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+    $originUrl .= 's';
+}
+$originUrl .= '://' . $_SERVER['HTTP_HOST'];
+if ($_SERVER['SERVER_PORT'] !== '80' && $_SERVER['SERVER_PORT'] !== '443') {
+    $originUrl .= ':' . $_SERVER['SERVER_PORT'];
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $summary = $_POST['summary'];
-    $arrayDescription = $_POST['description'];
+    $str1 = $_POST['description'];
+    $arrayDescription = str_replace('uploads/',$originUrl.'/uploads/',$str1);
     $assignee = $_POST['assignee'];
     $duedate = $_POST['duedate'];
 
