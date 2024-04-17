@@ -17,7 +17,7 @@ $client = new Client([
 $response = $client->get('/rest/api/3/search', [
     'query' => [
         'jql' => 'project = ' . $projectKey,
-        'maxResults' => 150,
+        'maxResults' => 5,
         'startAt' => 0,
         'fields' => 'summary,status,assignee',
     ],

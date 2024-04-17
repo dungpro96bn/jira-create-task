@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $arrayDescription = str_replace('uploads/',$originUrl.'/uploads/',$str1);
     $assignee = $_POST['assignee'];
     $duedate = $_POST['duedate'];
+//    $idStatus = $_POST['status'];
 
     $description = json_decode($arrayDescription, true);
 
@@ -41,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'issuetype' => [
                     'name' => 'Task',
                 ],
+//                'COLUMN::10096' => $idStatus,
             ],
         ];
 
